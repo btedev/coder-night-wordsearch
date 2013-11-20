@@ -1,64 +1,124 @@
 package org.be.wordsearch
 
-import scala.collection.mutable
+case class Letter(char: Char, x: Int = 0, y: Int = 0)
 
-case class Coordinate(x: Int = 0, y: Int = 0)
-case class Letter(char: Char, coordinate: Coordinate)
+trait LetterSequenceFormatter {
+  def lettersToString(letters: List[Letter]) = {
+    letters.map(_.char).mkString
+  }
+}
 
 class Board(val boardString: String) {
-  val charMatrix: List[List[Char]] = boardString.stripMargin.split('\n').toList.map(_.toList)
+  val boardLines: List[String] = boardString.stripMargin.split('\n').toList
+  val charMatrix: List[List[Char]] = boardLines.map(_.toList)
 
   val height = charMatrix.length;
   val width = charMatrix.head.length;
 
-  def get(x: Int, y: Int) = Letter(charMatrix(y)(x), Coordinate(x, y))
+  def get(x: Int, y: Int) = Letter(charMatrix(y)(x), x, y)
 
-  def rangeForX(x: Int) = Range(if (x > 0) x-1 else 0, if (x < width-1) x+1 else x).inclusive
-  def rangeForY(y: Int) = Range(if (y > 0) y-1 else 0, if (y < height-1) y+1 else y).inclusive
+  // Return all instances of a given character on the board as Letter objects
+  def boardLettersForChar(char: Char): List[Letter] = {
+    val charRegex = char.toString.r
 
-  def surroundingLetters(letter: Letter) = {
-    rangeForX(letter.coordinate.x).map {
-      x => rangeForY(letter.coordinate.y).map(y => get(x, y))
-    }.flatten.filterNot(_ == letter)
+    boardLines.zipWithIndex.map {
+      case(line, yIndex) => charRegex.findAllMatchIn(line).map(_.start).toList.map {
+        get(_, yIndex)
+      }
+    }.filterNot(_.isEmpty).flatten
   }
 
-  val singleLineBoard = boardString.stripMargin.filterNot(_ == '\n')
+  // Get letter sequence between two points on the board
+  def sequenceBetween(letterA: Letter, letterB: Letter, length: Int) = {
+    def nextMove(a: Int, b: Int) = {
+      val delta = b - a
+      delta match {
+        case 0 => a
+        case delta if delta > 0 => a + 1
+        case _ => a - 1
+      }
+    }
 
-  def coordinateForSingleLineIndex(idx: Int): Coordinate = {
-    val y = idx / width
-    val x = idx - (y * width)
-    Coordinate(x, y)
+    def step(letters: List[Letter], lastLetter: Letter): List[Letter] = {
+      letters.size match {
+        case `length` => letters
+        case _ => {
+          val l = get(nextMove(lastLetter.x, letterB.x), nextMove(lastLetter.y, letterB.y))
+          step(letters ::: List(l), l)
+        }
+      }
+    }
+
+    step(List(letterA), letterA)
+  }
+
+  // Get letter sequences (potential words) of a given length
+  // in a radial pattern arround a given letter.
+  def surroundingSequences(letter: Letter, length: Int) = {
+    def validCoordinates(expr: (Int, Int)) = expr match {
+      case (x, y) if x < 0 || y < 0 => false
+      case (x, _) if x >= width => false
+      case (_, y) if y >= height => false
+      case (letter.x, letter.y) => false
+      case _ => true
+    }
+
+    // Determine the valid end letters
+    // (i.e. the "to" letters for our "from" letter argument)
+    val farPoints = Range(-1, 1).inclusive.map {
+      xDir => Range(-1, 1).inclusive.map {
+        yDir => (letter.x + (xDir * (length - 1)), letter.y + (yDir * (length - 1)))
+      }
+    }.flatten.filter(validCoordinates _) // filter out invalid coordinates
+
+    // Get the corresponding letter sequences between from and to
+    farPoints.map(t => get(t._1, t._2)).map(u => sequenceBetween(letter, u, length))
   }
 }
 
-class WordSearch(val boardString: String, val wordList: String) {
+class WordSearch(val boardString: String, val wordList: String) extends LetterSequenceFormatter {
   val board = new Board(boardString)
 
   val words = wordList.split(" ").map(_.toUpperCase)
 
-  val uniqHeads = words.map(_.head).toSet
-
-  /*
-  val letterIndex: Map[Char, List[Coordinate]] = {
-
+  // Search for a word starting at a given letter.
+  // Note: Option return types wrap results in Some() or return None for empty
+  def findWord(word: String, start: Letter): Option[List[Letter]] = {
+    val seqs = board.surroundingSequences(start, word.size)
+    seqs.find(lettersToString(_) == word)
   }
-  */
 
   /*
-  val letterIndex = {
-    var letterMap = mutable.Map[Char, List[Letter]]()
-    //letterMap += 'C' -> List(Letter('C'))
-    charMatrix.foreach {
-      line => line.foreach {
-        char => if uniqHeads.contains(char) 
+  def indexesForLetterInLine(char: Char, line: String): Option[List[Int]] = {
+    val indexes = char.toString.r.findAllMatchIn(line).map(_.start).toList
+    indexes.isEmpty match {
+      case true => None
+      case false => Some(indexes)
+    }
+  }
+
+  def sequencesForWordInLine(word: String, lineIndex: Int) = {
+    val firstChar = word.head
+    val wordLen = word.size
+
+    val indexes = indexesForLetterInLine(word.head, board.boardLines(lineIndex))
+    indexes match {
+      case None => None
+      case Some(_) => {
+        indexes.get.map {
+          xIndex =>
+            val letter = board.get(xIndex, lineIndex)
+            board.surroundingSequences(letter, wordLen)
         }
       }
     }
   }
-*/
 
-  /*
-  def findWord(word: String) = {
+  // Search the entire board for a word match
+  def findWord(word: String): Option[List[Letter]] = {
+    board.boardLines.find {
+    }
+    //"B".r findAllMatchIn "ABCBD" map(_.start).toList
   }
   */
 }
