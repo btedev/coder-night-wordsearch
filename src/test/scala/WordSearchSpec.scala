@@ -78,32 +78,31 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
       search.words should be(List("HOG", "PIG", "BBQ", "PIT"))
     }
 
-    /*
-    it("should get all indexes for a given char in a line") {
-      val seq = search.indexesForLetterInLine('P', "IPIRSPB")
-      seq should be(Some(List(1, 5)))
+    it("should have a Map of letters corresponding to first letters of search words") {
+      search.letterMap.contains('H') should be(true)
+      search.letterMap('H').head should be(Letter('H', 5, 0))
 
-      search.indexesForLetterInLine('X', "IPIRSPB") should be(None)
+      search.letterMap('P').size should be(4)
+
+      search.letterMap.contains('W') should be(false)
     }
-
-    it("should get all sequences for letters in a line that match the first letter of a word") {
-
-      val result = search.sequencesForWordInLine("PIG", 2)
-      result.toSet should be(Set())
-    }
-    */
 
     describe("searching") {
       it("should find a valid word starting at a given letter") {
         val word = "HOG"
-        val result = search.findWord(word, search.board.get(5, 0))
+        val result = search.findWordAtLetter(word, search.board.get(5, 0))
         result should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
         lettersToString(result.get) should be("HOG")
       }
 
-      it("should return None if search word is not in puzzle") {
-        val result = search.findWord("TOFU", search.board.get(0, 0))
+      it("should return None if search word is not found starting at a given letter") {
+        val result = search.findWordAtLetter("TOFU", search.board.get(0, 0))
         result should be(None)
+      }
+
+      it("should find a valid word anywhere in the puzzle") {
+        val result = search.findWord("HOG")
+        result should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
       }
     }
   }

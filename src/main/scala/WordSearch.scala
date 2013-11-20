@@ -22,8 +22,8 @@ class Board(val boardString: String) {
     val charRegex = char.toString.r
 
     boardLines.zipWithIndex.map {
-      case(line, yIndex) => charRegex.findAllMatchIn(line).map(_.start).toList.map {
-        get(_, yIndex)
+      case(line, yIndex) => charRegex.findAllMatchIn(line).map {
+        charMatch => get(charMatch.start, yIndex)
       }
     }.filterNot(_.isEmpty).flatten
   }
@@ -72,7 +72,7 @@ class Board(val boardString: String) {
     }.flatten.filter(validCoordinates _) // filter out invalid coordinates
 
     // Get the corresponding letter sequences between from and to
-    farPoints.map(t => get(t._1, t._2)).map(u => sequenceBetween(letter, u, length))
+    farPoints.map(t => get(t._1, t._2)).map(sequenceBetween(letter, _, length))
   }
 }
 
@@ -81,46 +81,28 @@ class WordSearch(val boardString: String, val wordList: String) extends LetterSe
 
   val words = wordList.split(" ").map(_.toUpperCase)
 
+  val letterMap = {
+    val firstLetters = words.map(_.head).toSet.toList
+    val letterInstances = firstLetters.map(board.boardLettersForChar(_))
+    (firstLetters zip letterInstances).toMap
+  }
+
   // Search for a word starting at a given letter.
   // Note: Option return types wrap results in Some() or return None for empty
-  def findWord(word: String, start: Letter): Option[List[Letter]] = {
+  def findWordAtLetter(word: String, start: Letter): Option[List[Letter]] = {
     val seqs = board.surroundingSequences(start, word.size)
     seqs.find(lettersToString(_) == word)
   }
 
-  /*
-  def indexesForLetterInLine(char: Char, line: String): Option[List[Int]] = {
-    val indexes = char.toString.r.findAllMatchIn(line).map(_.start).toList
-    indexes.isEmpty match {
-      case true => None
-      case false => Some(indexes)
-    }
-  }
-
-  def sequencesForWordInLine(word: String, lineIndex: Int) = {
-    val firstChar = word.head
-    val wordLen = word.size
-
-    val indexes = indexesForLetterInLine(word.head, board.boardLines(lineIndex))
-    indexes match {
-      case None => None
-      case Some(_) => {
-        indexes.get.map {
-          xIndex =>
-            val letter = board.get(xIndex, lineIndex)
-            board.surroundingSequences(letter, wordLen)
-        }
-      }
-    }
-  }
-
   // Search the entire board for a word match
   def findWord(word: String): Option[List[Letter]] = {
-    board.boardLines.find {
+    val firstChar = word.head
+    val soln = letterMap(firstChar).find(findWordAtLetter(word, _) != None)
+    soln match {
+      case None => None
+      case _ => findWordAtLetter(word, soln.get)
     }
-    //"B".r findAllMatchIn "ABCBD" map(_.start).toList
   }
-  */
 }
 
 /*
