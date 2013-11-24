@@ -28,7 +28,7 @@ class Board(val boardString: String) {
     }.filterNot(_.isEmpty).flatten
   }
 
-  // Get letter sequence between two points on the board
+  // Letter sequence between two points on the board
   def sequenceBetween(letterA: Letter, letterB: Letter, length: Int) = {
     def nextMove(a: Int, b: Int) = {
       val delta = b - a
@@ -52,7 +52,7 @@ class Board(val boardString: String) {
     step(List(letterA), letterA)
   }
 
-  // Get letter sequences (potential words) of a given length
+  // Returns letter sequences (potential words) of a given length
   // in a radial pattern arround a given letter.
   def surroundingSequences(letter: Letter, length: Int) = {
     def validCoordinates(expr: (Int, Int)) = expr match {
@@ -81,27 +81,24 @@ class WordSearch(val boardString: String, val wordList: String) extends LetterSe
 
   val words = wordList.split(" ").map(_.toUpperCase)
 
+  // Map search word first letters to Letter instances on board
   val letterMap = {
-    val firstLetters = words.map(_.head).toSet.toList
+    val firstLetters = words.map(_.head).toSet
     val letterInstances = firstLetters.map(board.boardLettersForChar(_))
     (firstLetters zip letterInstances).toMap
   }
 
   // Search for a word starting at a given letter.
-  // Note: Option return types wrap results in Some() or return None for empty
+  // Note: Option return types wrap results in Some() or return None for empty.
   def findWordAtLetter(word: String, start: Letter): Option[List[Letter]] = {
     val seqs = board.surroundingSequences(start, word.size)
     seqs.find(lettersToString(_) == word)
   }
 
-  // Search the entire board for a word match
+  // Search the entire board for a word match.
   def findWord(word: String): Option[List[Letter]] = {
-    val firstChar = word.head
-    val soln = letterMap(firstChar).find(findWordAtLetter(word, _) != None)
-    soln match {
-      case None => None
-      case _ => findWordAtLetter(word, soln.get)
-    }
+    // `view` causes list to be lazy-evaluated.
+    letterMap(word.head).view.map(findWordAtLetter(word, _)).find(_ != None) getOrElse(None)
   }
 }
 

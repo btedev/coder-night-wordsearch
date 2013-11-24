@@ -101,8 +101,12 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
       }
 
       it("should find a valid word anywhere in the puzzle") {
-        val result = search.findWord("HOG")
-        result should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
+        search.findWord("HOG") should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
+        search.findWord("BBQ") should be(Some(List(Letter('B', 6, 1), Letter('B', 6, 2), Letter('Q', 6, 3))))
+      }
+
+      it("should return None if word is not found on board") {
+        search.findWord("BAT") should be(None)
       }
     }
   }
