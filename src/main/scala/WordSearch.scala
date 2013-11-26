@@ -50,10 +50,10 @@ class Board(val boardString: String) {
   def surroundingSequences(letter: Letter, length: Int) = {
     def validCoordinates(expr: (Int, Int)) = expr match {
       case (x, y) if x < 0 || y < 0 => false
-      case (x, _) if x >= width => false
-      case (_, y) if y >= height => false
-      case (letter.x, letter.y) => false
-      case _ => true
+      case (x, _) if x >= width     => false
+      case (_, y) if y >= height    => false
+      case (letter.x, letter.y)     => false
+      case _                        => true
     }
 
     // Determine the valid end letters
