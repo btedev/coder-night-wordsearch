@@ -9,7 +9,7 @@ trait LetterSequenceFormatter {
 }
 
 class Board(val boardString: String) {
-  val boardLines: List[String] = boardString.stripMargin.split('\n').toList
+  val boardLines: List[String] = boardString.stripMargin.filterNot(_ == ' ').split('\n').toList
   val charMatrix: List[List[Char]] = boardLines.map(_.toList)
 
   val height = charMatrix.length;
@@ -30,14 +30,7 @@ class Board(val boardString: String) {
 
   // Letter sequence between two points on the board
   def sequenceBetween(letterA: Letter, letterB: Letter, length: Int) = {
-    def nextMove(a: Int, b: Int) = {
-      val delta = b - a
-      delta match {
-        case 0 => a
-        case delta if delta > 0 => a + 1
-        case _ => a - 1
-      }
-    }
+    def nextMove(a: Int, b: Int) = a + (b compare a)
 
     def step(letters: List[Letter], lastLetter: Letter): List[Letter] = {
       letters.size match {
@@ -83,27 +76,78 @@ class WordSearch(val boardString: String, val wordList: String) extends LetterSe
 
   // Map search word first letters to Letter instances on board
   val letterMap = {
-    val firstLetters = words.map(_.head).toSet
+    val firstLetters = words.map(_.head).toSet.toList
     val letterInstances = firstLetters.map(board.boardLettersForChar(_))
     (firstLetters zip letterInstances).toMap
   }
 
   // Search for a word starting at a given letter.
   // Note: Option return types wrap results in Some() or return None for empty.
-  def findWordAtLetter(word: String, start: Letter): Option[List[Letter]] = {
-    val seqs = board.surroundingSequences(start, word.size)
+  def findWordAtLetter(word: String, letter: Letter): Option[List[Letter]] = {
+    val seqs = board.surroundingSequences(letter, word.size)
     seqs.find(lettersToString(_) == word)
   }
 
-  // Search the entire board for a word match.
-  def findWord(word: String): Option[List[Letter]] = {
-    // `view` causes list to be lazy-evaluated.
-    letterMap(word.head).view.map(findWordAtLetter(word, _)).find(_ != None) getOrElse(None)
+  // Search the entire board for a word match. May find multiple matches.
+  def findWord(word: String): List[List[Letter]] = {
+    letterMap(word.head).map(findWordAtLetter(word, _)).filter(_ != None).map(_.get)
+  }
+
+  def findAll: List[List[Letter]] = {
+    words.map(findWord _).flatten.toList
+  }
+
+  def format(words: List[List[Letter]]): String = {
+    // All-plus board
+    val builder = new StringBuilder("+" * board.height * board.width)
+
+    // Substitute letters from found words
+    words.map {
+      word => word.map {
+        letter =>  {
+          val offset = (letter.y * board.width) + letter.x
+          builder.replace(offset, offset + 1, letter.char.toString)
+        }
+      }
+    }
+
+    // Add spaces and newlines
+    builder.grouped(board.width).map(_.mkString("", " ", "\n")).mkString
   }
 }
 
-/*
-class WordSearchLoader {
+class WordSearchInput
 
+object WordSearchInput {
+  val matrix = new StringBuilder
+  var blankLine = false
+
+  def apply(line: String): Option[String] = {
+    line match {
+      case(line) if line.size > 0 && !blankLine => {
+        matrix.append(line + "\n")
+        None
+      }
+      case(line) if line.size == 0 => {
+        blankLine = true
+        None
+      }
+      case _ => {
+        val search = new WordSearch(matrix.toString, line)
+        val soln = search.findAll
+        Some(search.format(soln))
+      }
+    }
+  }
+
+  def main(args: Array[String]) {
+    var last: Option[String] = None
+
+    do {
+      last = apply(readLine())
+    } while(last == None)
+
+    println(last.get)
+  }
 }
-*/
+

@@ -56,10 +56,6 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
       val seq2 = board.surroundingSequences(k, 5)
       seq2.isEmpty should be(true)
     }
-
-    it("should get all instance of a letter in the board") {
-
-    }
   }
 
   describe("WordSearch") {
@@ -89,8 +85,7 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
 
     describe("searching") {
       it("should find a valid word starting at a given letter") {
-        val word = "HOG"
-        val result = search.findWordAtLetter(word, search.board.get(5, 0))
+        val result = search.findWordAtLetter("HOG", search.board.get(5, 0))
         result should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
         lettersToString(result.get) should be("HOG")
       }
@@ -101,13 +96,65 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
       }
 
       it("should find a valid word anywhere in the puzzle") {
-        search.findWord("HOG") should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
-        search.findWord("BBQ") should be(Some(List(Letter('B', 6, 1), Letter('B', 6, 2), Letter('Q', 6, 3))))
+        search.findWord("HOG").head should be(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0)))
+        search.findWord("BBQ").head should be(List(Letter('B', 6, 1), Letter('B', 6, 2), Letter('Q', 6, 3)))
       }
 
-      it("should return None if word is not found on board") {
-        search.findWord("BAT") should be(None)
+      it("should return empty if word is not found on board") {
+        search.findWord("BAT") should be(List())
+      }
+    }
+
+    describe("solution") {
+      val boardString = """U E W R T R B H C D
+                           |C X G Z U W R Y E R
+                           |R O C K S B A U C U
+                           |S F K F M T Y S G E
+                           |Y S O O U N M Z I M
+                           |T C G P R T I D A N
+                           |H Z G H Q G W T U V
+                           |H Q M N D X Z B S T
+                           |N T C L A T N B C E
+                           |Y B U R P Z U X M S
+                           |"""
+      val words = "ruby dan rocks matz"
+      val search = new WordSearch(boardString, words)
+      val soln = search.findAll
+
+      it("should find all search words") {
+        soln.size should be(5) // ruby found twice in puzzle
+      }
+
+      it("should format correctly") {
+        val expected = """+ + + R + + + + + +
+                          |+ + + + U + + + + +
+                          |R O C K S B + + + +
+                          |+ + + + + + Y + + +
+                          |+ + + + + + + + + M
+                          |+ + + + + + + D A N
+                          |+ + + + + + + T + +
+                          |+ + + + + + Z + + +
+                          |+ + + + + + + + + +
+                          |Y B U R + + + + + +
+                          |""".stripMargin
+
+        val formatted = search.format(soln)
+        formatted should be(expected)
       }
     }
   }
+
+  describe("WordSearchInput") {
+    it("should solve a puzzle entered line-by-line") {
+    val wordList = "hog Pig BBQ pit"
+      WordSearchInput("ABCGOHG") should be(None)
+      WordSearchInput("TPJKLMB") should be(None)
+      WordSearchInput("IPIRSPB") should be(None)
+      WordSearchInput("PIXGZAQ") should be(None)
+      WordSearchInput("") should be(None)
+      val result = WordSearchInput("hog Pig BBQ pit")
+      result.get.split("\n").head should be("+ + + G O H +")
+    }
+  }
 }
+
