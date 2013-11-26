@@ -83,14 +83,14 @@ class WordSearch(val boardString: String, val wordList: String) extends LetterSe
 
   // Search for a word starting at a given letter.
   // Note: Option return types wrap results in Some() or return None for empty.
-  def findWordAtLetter(word: String, letter: Letter): Option[List[Letter]] = {
+  def findWordsAtLetter(word: String, letter: Letter): Option[List[Letter]] = {
     val seqs = board.surroundingSequences(letter, word.size)
     seqs.find(lettersToString(_) == word)
   }
 
   // Search the entire board for a word match. May find multiple matches.
   def findWord(word: String): List[List[Letter]] = {
-    letterMap(word.head).map(findWordAtLetter(word, _)).filter(_ != None).map(_.get)
+    letterMap(word.head).map(findWordsAtLetter(word, _)).filter(_ != None).map(_.get)
   }
 
   def findAll: List[List[Letter]] = {
