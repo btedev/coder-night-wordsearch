@@ -47,5 +47,14 @@ Learning Scala
 --------------
 
 I chose to first complete the [Koans](http://www.scalakoans.org)
-before seriously studying any other reference. I found this quite useful when
-trying to actually write a program in the language.
+before seriously studying any other reference. Other useful resources are:
+
+* [Twitter's Scala school](http://twitter.github.io/scala_school/index.html)
+
+* [The Neophyte's Guide to Scala](http://danielwestheide.com/scala/neophytes.html)
+
+* [Scala for the Impatient](http://horstmann.com/scala/)
+
+* [Scala Cookbook](http://www.amazon.com/Scala-Cookbook-Object-Oriented-Functional-Programming/dp/1449339611)
+
+
