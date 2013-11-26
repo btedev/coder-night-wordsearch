@@ -85,13 +85,13 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
 
     describe("searching") {
       it("should find a valid word starting at a given letter") {
-        val result = search.findWordsAtLetter("HOG", search.board.get(5, 0))
+        val result = search.findWordAtLetter("HOG", search.board.get(5, 0))
         result should be(Some(List(Letter('H', 5, 0), Letter('O', 4, 0), Letter('G', 3, 0))))
         lettersToString(result.get) should be("HOG")
       }
 
       it("should return None if search word is not found starting at a given letter") {
-        val result = search.findWordsAtLetter("TOFU", search.board.get(0, 0))
+        val result = search.findWordAtLetter("TOFU", search.board.get(0, 0))
         result should be(None)
       }
 
