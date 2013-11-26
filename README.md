@@ -9,7 +9,7 @@ Goal
 This is the first program I've written in Scala. My goal was to complete the
 assignment following the 80/20 rule of writing as much as possible (~ 80%) of
 the program in a functional style while using imperative programming
-only when necessary (e.g. for input, output, database writes, etc.).
+only when necessary (e.g. for input).
 
 Since I'm new to Scala, this first attempt is very likely not close to
 idiomatic Scala. As regards functional vs. imperative programming, I will note
