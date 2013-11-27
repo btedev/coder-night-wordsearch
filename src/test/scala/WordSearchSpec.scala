@@ -146,7 +146,6 @@ class WordSearchSpec extends FunSpec with Matchers with LetterSequenceFormatter 
 
   describe("WordSearchInput") {
     it("should solve a puzzle entered line-by-line") {
-    val wordList = "hog Pig BBQ pit"
       WordSearchInput("ABCGOHG") should be(None)
       WordSearchInput("TPJKLMB") should be(None)
       WordSearchInput("IPIRSPB") should be(None)
